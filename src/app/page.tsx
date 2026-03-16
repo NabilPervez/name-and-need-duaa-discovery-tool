@@ -25,7 +25,7 @@ export default function Home() {
   const [favorites, setFavorites] = useState<number[]>([]);
   const [selectedName, setSelectedName] = useState<AllahName | null>(null);
   const [copied, setCopied] = useState(false);
-  const [howToOpen, setHowToOpen] = useState(true);
+  const [howToModal, setHowToModal] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("duaFavorites");
@@ -124,19 +124,68 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-[#333333] font-sans antialiased flex flex-col">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-10 w-full">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-2 text-[#2d6a4f] font-bold text-xl cursor-pointer" onClick={clearAllFilters}>
-              <span className="text-2xl text-[#d4af37]">✨</span> Name & Need | Duaa & Allah Discovery Tool
+
+      {/* How To Use Modal */}
+      {howToModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setHowToModal(false)} />
+          <div className="bg-white rounded-2xl shadow-2xl z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
+            <div className="bg-[#2d6a4f] text-white p-6 rounded-t-2xl flex justify-between items-center">
+              <h2 className="text-xl font-bold">How To Find the Name & Duaa You Need</h2>
+              <button onClick={() => setHowToModal(false)} className="text-white hover:text-[#d4af37] transition-colors">
+                <X className="w-7 h-7" />
+              </button>
             </div>
-            <div>
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="flex flex-col items-center text-center p-5 bg-[#f2f7f4] rounded-xl">
+                <div className="text-5xl mb-3">🔍</div>
+                <div className="w-8 h-8 rounded-full bg-[#2d6a4f] text-white text-sm font-bold flex items-center justify-center mb-3">1</div>
+                <h4 className="font-bold text-gray-800 mb-2">Search or Filter</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Use the search bar or tap an intent filter (like <em>"Healing"</em> or <em>"Guidance"</em>) to find which of Allah's Names speaks to your need.
+                </p>
+              </div>
+              <div className="flex flex-col items-center text-center p-5 bg-[#f2f7f4] rounded-xl">
+                <div className="text-5xl mb-3">🤍</div>
+                <div className="w-8 h-8 rounded-full bg-[#2d6a4f] text-white text-sm font-bold flex items-center justify-center mb-3">2</div>
+                <h4 className="font-bold text-gray-800 mb-2">Save a Name</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Click any card to read its meaning and duaa. Tap the <span className="text-red-500 font-bold">♥</span> heart to save it to your personal collection.
+                </p>
+              </div>
+              <div className="flex flex-col items-center text-center p-5 bg-[#f2f7f4] rounded-xl">
+                <div className="text-5xl mb-3">🤲</div>
+                <div className="w-8 h-8 rounded-full bg-[#2d6a4f] text-white text-sm font-bold flex items-center justify-center mb-3">3</div>
+                <h4 className="font-bold text-gray-800 mb-2">Pray with Focus</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Tap <strong>My Duaas</strong> in the top right. Your saved duas are listed in full — scroll through and recite during prayer or quiet reflection.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-40 w-full" style={{ boxShadow: '0 1px 4px 0 rgba(0,0,0,0.07)' }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center gap-4">
+            <div className="flex items-center gap-2 text-[#2d6a4f] font-bold text-lg cursor-pointer shrink-0" onClick={clearAllFilters}>
+              Name & Need
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setHowToModal(true)}
+                className="px-3 py-2 rounded-md font-medium flex items-center gap-2 text-gray-500 hover:text-[#2d6a4f] hover:bg-gray-50 transition-colors text-sm"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                How To Use
+              </button>
               <button 
                 onClick={() => { setViewingFavorites(!viewingFavorites); setActiveIntents([]); setActiveCategories([]); }}
-                className={`px-3 py-2 rounded-md font-medium flex items-center gap-2 transition-colors ${viewingFavorites ? 'bg-[#2d6a4f] text-white' : 'text-[#2d6a4f] hover:text-[#1b4332]'}`}
+                className={`px-3 py-2 rounded-md font-medium flex items-center gap-2 transition-colors text-sm ${viewingFavorites ? 'bg-[#2d6a4f] text-white' : 'text-[#2d6a4f] hover:text-[#1b4332]'}`}
               >
-                <Heart className={`w-5 h-5 ${viewingFavorites ? 'fill-current' : ''}`} /> My Duas
+                <Heart className={`w-4 h-4 ${viewingFavorites ? 'fill-current' : ''}`} /> My Duaas
               </button>
             </div>
           </div>
@@ -149,6 +198,21 @@ export default function Home() {
         {/* Intro & Search */}
         {!viewingFavorites && (
           <div className="flex flex-col gap-6">
+
+            {/* Islamic Quote — above search */}
+            <div className="p-6 bg-[#f2f7f4] rounded-xl border border-[#2d6a4f]/20 text-center">
+              <p className="font-arabic text-2xl text-[#1b4332] mb-4 leading-relaxed tracking-wide">
+                قُلِ ٱدْعُوا۟ ٱللَّهَ أَوِ ٱدْعُوا۟ ٱلرَّحْمَـٰنَ ۖ أَيًّۭا مَّا تَدْعُوا۟ فَلَهُ ٱلْأَسْمَآءُ ٱلْحُسْنَىٰ ۚ وَلَا تَجْهَرْ بِصَلَاتِكَ وَلَا تُخَافِتْ بِهَا وَٱبْتَغِ بَيْنَ ذَٰلِكَ سَبِيلًۭا ١١٠
+              </p>
+              <p className="text-sm text-gray-700 italic mb-2">
+                Say, ˹O Prophet,˺ "Call upon Allah or call upon the Most Compassionate—whichever you call, He has the Most Beautiful Names." Do not recite your prayers too loudly or silently, but seek a way between.
+              </p>
+              <a href="https://quran.com/17/110" target="_blank" rel="noopener noreferrer" className="text-xs text-[#2d6a4f] hover:underline font-medium">
+                The Night Journey (17:110)
+              </a>
+            </div>
+
+            {/* Search */}
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">Find Your Supplication</h1>
               <div className="relative w-full">
@@ -163,68 +227,6 @@ export default function Home() {
                   className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent shadow-sm text-lg bg-white"
                 />
               </div>
-
-              {/* Islamic Quote */}
-              <div className="mt-6 p-6 bg-[#f2f7f4] rounded-xl border border-[#2d6a4f]/20 text-center">
-                <p className="font-arabic text-2xl text-[#1b4332] mb-4 leading-relaxed tracking-wide">
-                  قُلِ ٱدْعُوا۟ ٱللَّهَ أَوِ ٱدْعُوا۟ ٱلرَّحْمَـٰنَ ۖ أَيًّۭا مَّا تَدْعُوا۟ فَلَهُ ٱلْأَسْمَآءُ ٱلْحُسْنَىٰ ۚ وَلَا تَجْهَرْ بِصَلَاتِكَ وَلَا تُخَافِتْ بِهَا وَٱبْتَغِ بَيْنَ ذَٰلِكَ سَبِيلًۭا ١١٠
-                </p>
-                <p className="text-sm text-gray-700 italic mb-2">
-                  Say, ˹O Prophet,˺ "Call upon Allah or call upon the Most Compassionate—whichever you call, He has the Most Beautiful Names." Do not recite your prayers too loudly or silently, but seek a way between.
-                </p>
-                <a href="https://quran.com/17/110" target="_blank" rel="noopener noreferrer" className="text-xs text-[#2d6a4f] hover:underline font-medium">
-                  The Night Journey (17:110)
-                </a>
-              </div>
-            </div>
-
-            {/* How To Use — collapsible */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-              <button
-                onClick={() => setHowToOpen(o => !o)}
-                className="w-full flex justify-between items-center px-6 py-4 text-left hover:bg-gray-50 transition-colors"
-              >
-                <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">
-                  💡 How To Find the Name & Duaa You Need
-                </span>
-                <span className={`text-gray-400 transition-transform duration-200 ${howToOpen ? 'rotate-180' : ''}`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </span>
-              </button>
-
-              {howToOpen && (
-                <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Step 1 */}
-                  <div className="flex flex-col items-center text-center p-4 bg-[#f2f7f4] rounded-xl">
-                    <div className="text-4xl mb-3">🔍</div>
-                    <div className="w-7 h-7 rounded-full bg-[#2d6a4f] text-white text-sm font-bold flex items-center justify-center mb-3">1</div>
-                    <h4 className="font-bold text-gray-800 mb-2">Search or Filter</h4>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      Use the search bar or tap an intent filter (like <em>"Healing"</em> or <em>"Guidance"</em>) to discover which of Allah's Beautiful Names speaks to your current need.
-                    </p>
-                  </div>
-
-                  {/* Step 2 */}
-                  <div className="flex flex-col items-center text-center p-4 bg-[#f2f7f4] rounded-xl">
-                    <div className="text-4xl mb-3">🤍</div>
-                    <div className="w-7 h-7 rounded-full bg-[#2d6a4f] text-white text-sm font-bold flex items-center justify-center mb-3">2</div>
-                    <h4 className="font-bold text-gray-800 mb-2">Save a Name</h4>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      Click any name card to read its meaning and personal duaa. Tap the <span className="text-red-500 font-bold">♥</span> heart to save it — build your own curated collection of supplications.
-                    </p>
-                  </div>
-
-                  {/* Step 3 */}
-                  <div className="flex flex-col items-center text-center p-4 bg-[#f2f7f4] rounded-xl">
-                    <div className="text-4xl mb-3">🤲</div>
-                    <div className="w-7 h-7 rounded-full bg-[#2d6a4f] text-white text-sm font-bold flex items-center justify-center mb-3">3</div>
-                    <h4 className="font-bold text-gray-800 mb-2">Pray with Focus</h4>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      Tap <strong>My Duas</strong> in the top right. Your saved duas are listed out in full — scroll through and recite them during your prayer or quiet reflection.
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Intent Tags */}
@@ -341,6 +343,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <Heart className="w-6 h-6 text-red-500 fill-current" />
                 My Duaas
+                
               </h2>
               <div className="flex flex-col gap-6">
                 {filteredNames.map(item => (
