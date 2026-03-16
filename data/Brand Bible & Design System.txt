@@ -1,0 +1,72 @@
+﻿Brand Bible: Asma-ul-Husna Dua Companion
+1. Brand Ethos & Visual Identity
+Core Concept: "Digital Serenity"
+The application must feel like a digital sanctuary. Users are visiting this app in moments of vulnerability, seeking comfort, or preparing for prayer. The design must not shout; it must whisper.
+Design Pillars:
+* Modern Minimalism: Abundant whitespace, removing any UI elements that don't serve a direct purpose.
+* Organic: Avoiding harsh, sharp geometric lines. Using soft rounded corners, gentle gradients, and warm off-white backgrounds instead of stark hospital-white.
+* Elegant (Green & Gold): Drawing from classical Islamic art, but modernized. Deep, grounding greens paired with soft, brushed gold accents to signify the preciousness of the Duas.
+2. Color Palette
+Primary Colors (The Foundation)
+* Deep Emerald (Primary Dark): #064E3B (Used for primary text in light mode, headers, and active states).
+* Sage Green (Primary Soft): #4F7942 (Used for secondary buttons, borders, and subtle backgrounds).
+Accent Colors (The Spark)
+* Brushed Gold (Accent): #D4AF37
+   * Usage: This should be used sparingly to draw the eye. Used for the "Compile" button, star/bookmark icons, and thin divider lines. It should never be used as a large background color to avoid looking gaudy.
+* Soft Amber (Hover State): #FDE68A (Used when hovering over gold elements).
+Background & Neutrals (Organic Feel)
+* Parchment White (Light Mode BG): #FAFAF9 (A warm off-white. Stark #FFFFFF is too harsh for reading Arabic text).
+* Card Background: #FFFFFF (To provide slight elevation against the parchment background).
+* Midnight Slate (Dark Mode BG): #0F172A (A very deep blue/gray-green, much softer on the eyes for night prayers than pure black #000000).
+* Dark Mode Card: #1E293B
+3. Typography
+English Typography
+* Primary UI Font: Figtree or Inter (Google Fonts).
+   * Why: Clean, highly legible, modern sans-serif fonts with slightly rounded terminals that feel friendly and organic.
+   * Weights: 400 (Regular) for body text, 600 (SemiBold) for UI buttons and headers.
+* Serif Accent (Optional): Lora
+   * Why: Can be used for the English translation of the Duas to give them a poetic, literary feel.
+Arabic Typography
+* Primary Arabic Font: Amiri (Google Fonts).
+   * Why: It is a classical Arabic typeface in the Naskh style, widely used for Quranic text. It is incredibly legible on screens and feels authentic.
+   * Line Height: Must be set to at least 2.0 to accommodate the tall ascenders and deep descenders of Arabic script.
+4. UI / UX Styling Rules
+* Border Radius (The "Organic" Rule): Avoid sharp 90-degree corners.
+   * Buttons: rounded-full (pill shape) or rounded-xl (12px).
+   * Cards: rounded-2xl (16px) for a soft, touchable feel.
+* Shadows: Soft, diffused, and slightly tinted green.
+   * Instead of a harsh black shadow, use a very transparent Emerald drop shadow: box-shadow: 0 4px 14px 0 rgba(6, 78, 59, 0.05);
+* Layout: Single-column dominant. Ensure the max-width of the reading container is around 650px (Chokhara reading width) so the user's eyes don't have to scan too far left and right.
+5. Recommended React Libraries & Tech Stack
+To build this specific "modern, organic, green and gold" UI rapidly, the engineering team should use the following React ecosystem tools:
+1. Styling & CSS Framework: Tailwind CSS
+* Why: Perfect for creating custom design systems without writing raw CSS. You can easily plug the Hex codes above into the tailwind.config.js file.
+2. UI Component Library: shadcn/ui
+* Why: Unlike Material UI or Bootstrap which look very "corporate", shadcn/ui provides beautifully designed, accessible, headless components that you own and can style purely with Tailwind. It is the current industry standard for modern React apps.
+* Usage: Use their Cards, Checkboxes, and Dialogs, and style them with the Emerald/Gold palette.
+3. Icons: Lucide React (lucide-react)
+* Why: Clean, stroke-based icons that look highly modern and organic.
+* Key Icons: Search (for the home page), CheckCircle (for selecting names), BookOpen (for the compile view), Moon / Sun (for dark mode).
+4. Animations: Framer Motion (framer-motion)
+* Why: Crucial for the "organic" feel. When a user clicks a Category, the list of Names should glide in smoothly, not snap abruptly.
+* Usage: Add gentle fade-ins (opacity: 0 to 1) and slide-ups (y: 10 to 0) when rendering the compiled prayer view.
+5. Utilities
+* clsx & tailwind-merge: For conditional class joining (standard with shadcn).
+* next-themes: (If using Next.js) For flawlessly handling the Light/Dark mode toggle which is critical for night-time prayer use.
+6. Component Examples (Mental Models)
+The "Add to List" Checkbox
+Instead of a standard square browser checkbox, use an organic, circular toggle.
+* Unselected: A subtle sage green ring border-sage-300.
+* Selected: Fills with Deep Emerald bg-emerald-900, with a brushed gold checkmark icon inside.
+The "Compile" Button (Primary CTA)
+This is the most important button on the site.
+* Background: Deep Emerald (#064E3B).
+* Text: White, SemiBold.
+* Icon: A subtle Gold spark or book icon next to the text.
+* Shape: Pill-shaped (rounded-full).
+* Hover State: Gently scales up by 2% using Framer Motion, background lightens slightly.
+The "Prayer View" Card
+* Background: Pure transparent (blends with the parchment background).
+* Arabic Text: Centered, large (text-4xl or text-5xl), dark emerald color (text-emerald-950).
+* English Translation: Left-aligned, smaller (text-lg), muted text color (text-gray-600), serif font (Lora).
+* Divider: A very thin, elegant gold line (border-b border-[#D4AF37]/30) separating each Name's Dua.

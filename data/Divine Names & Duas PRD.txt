@@ -1,0 +1,89 @@
+﻿Product Requirements Document: Al-Asma Dua Connect
+Version: 1.0
+Status: Draft / Ready for Review
+Role: Senior Product Manager & Systems Architect
+1. Context & Scope
+1.1 Executive Summary
+Elevator Pitch: A spiritual companion web app that connects users' personal life goals and emotional states to the specific Names of Allah and their corresponding prophetic-style Duas.
+Project Type: New Product (MVP).
+Top 3 KPIs:
+1. Search Success Rate: % of users who land on a Dua page after a search query.
+2. User Retention: % of users returning to the site within 7 days (indicating the app has become part of their daily worship).
+3. Dua Completion: Number of "Copy to Clipboard" or "Heart/Favorite" actions per session.
+1.2 Problem Statement
+Pain Point: Many Muslims know the 99 Names of Allah but struggle to apply them practically in their personal prayers (Dua). When facing a specific trial (e.g., financial stress, broken heart, or confusion), they often don't know which Name to invoke or how to structure the plea.
+Consequence: A feeling of disconnection in prayer or repetitive, generic Duas that lack the "Aha!" moment of divine connection.
+1.3 Value Proposition
+Unlike a static list of 99 names, this app acts as a bridge. It allows users to search by "intent" (e.g., "I'm feeling lost") and immediately provides the divine attribute (Ya Hadi) and a specific, emotive Dua to recite.
+2. User Personas & Roles
+2.1 The Personas
+1. The Seeker (End User): A person in a moment of need (distress, gratitude, or seeking guidance) looking for the right words to speak to God.
+2. The Student: Someone looking to memorize the names and understand their linguistic roots (R-H-M, J-B-R, etc.).
+3. The Admin: Site owner who updates the database of names and Duas.
+2.2 Access Control
+* Public (Viewer): Access to all search, category, and Dua content.
+* User (Authenticated - Assumption): Can "Favorite" Duas to build a personal "Supplication List" for times like Tahajjud or Laylatul Qadr.
+* Multi-tenancy: Not required.
+3. User Stories & Functional Requirements
+3.1 Authentication & Onboarding
+* MVP Approach: No login required for search/view.
+* Onboarding: A simple 3-step modal on first load: 1. Search for a feeling. 2. Discover the Name. 3. Read the Dua.
+3.2 Core Workflow (The "Happy Path")
+1. Input: User enters "Healing" or "Ar-Shafi" in the search bar.
+2. Processing: The system fuzzy-searches the Names Explained and Dua Content from the provided dataset.
+3. Output: A list of relevant Names (e.g., Ya Shafi, Ya Salaam).
+4. Action: User clicks a name to see the "Deep Dive" (Linguistic meaning + the Omar Suleiman Dua).
+3.3 Configuration
+* Theme: Default "Spirituality" mode (Soft greens/gold), with a toggle for Dark Mode (Indigo/Stars).
+* Export: Ability to export "Favorited" Duas as a single PDF for offline use during travel or Umrah. [Assumption]
+4. Monetization & Billing
+4.1 Model
+Sadaqah Jariyah (Free Forever): This product is intended as a community service.
+* Donations: A small "Support this project" button in the footer.
+5. Site Map & Information Architecture
+5.1 Global Navigation
+* Sidebar (Desktop) / Bottom Bar (Mobile):
+   * Explore (Home)
+   * Categories (Mercy, Power, Justice, Guidance)
+   * My Duas (Saved)
+   * Settings (Language, Theme)
+5.2 URL Structure
+* app.com/ (Landing + Search)
+* app.com/category/mercy (Filtered list)
+* app.com/name/ar-rahman (Individual name & Dua page)
+6. Page-by-Page Breakdown
+6.1 Home / Search Page
+* Goal: Instant discovery.
+* Components: * Omni-Search: Real-time search that updates as you type.
+   * Intent Tags: Clickable buttons like "Anxious," "Forgiveness," "Success," "Protection."
+   * Randomizer: "Show me a Name to reflect on."
+6.2 Name & Dua Detail Page
+* Arabic Typography: High-quality, large-scale Calligraphy or Font (Amiri).
+* Meaning Block: Linguistic breakdown (Roots) provided in the source text.
+* Dua Block: The emotive text (e.g., "Ya Rahman, from Your throne You wrote mercy upon Yourself...").
+* Action Buttons: "Copy Dua," "Share to WhatsApp," "Save to Favorites."
+7. Technical Requirements
+7.1 Stack Preferences
+* Frontend: React (Next.js) for SEO optimization of names.
+* Styling: Tailwind CSS (using fluid typography for Arabic text).
+* Database: Firestore (to handle user favorites and metadata) or a static JSON for the MVP (since the data is finite at ~118 names).
+* Search Engine: Fuse.js for client-side fuzzy searching (very fast for this size of dataset).
+7.2 Performance
+* LCP (Largest Contentful Paint): < 1.5s.
+* Offline Mode: Service Workers to allow access to saved Duas without internet.
+8. Roadmap & Phasing
+8.1 MVP (Phase 1)
+* Full search functionality for 118 names.
+* Categories for "Mercy," "Power," "Protection," and "Guidance."
+* English translation and Duas.
+8.2 V2 (Future)
+* Audio Integration: High-quality recitation of the name and the Dua.
+* Transliteration: For users who cannot read Arabic.
+* Multi-Language: Translation into Urdu, Malay, and Arabic UI.
+9. Critical Clarifications
+Based on the provided text, I had to make the following assumptions:
+1. Dua Grouping: I assumed we should group names into "intent" categories (e.g., names of Mercy vs. names of Justice) to facilitate the "I'm feeling X" search. Does this alignment match your vision?
+2. Arabic Text: The provided text is English-heavy. Will you provide the specific Arabic text for each Dua, or should the app focus on the English supplications?
+3. Authentication: I assumed a "Favorite" system needs a login. Would you prefer a "No-Login" local storage system (which is faster but doesn't sync across devices)?
+4. Data Volume: The transcript has 118 entries. I assumed we want to display all 118, even those that overlap in meaning (e.g., Al-Malik and Al-Malik), to stay true to the source material.
+5. Offline Access: I assumed this should be a Progressive Web App (PWA) so people can use it in mosques or areas with poor signal. Is this a priority?
