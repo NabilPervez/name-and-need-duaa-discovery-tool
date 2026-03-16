@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Al-Asma Dua Connect</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Tailwind Configuration for Custom Palette -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              light: '#f2f7f4',
+              DEFAULT: '#2d6a4f', // Soft, deep spiritual green
+              dark: '#1b4332',
+              accent: '#d4af37'  // Subtle gold for highlights
+            },
+            neutral: {
+              bg: '#fafafa',
+              card: '#ffffff',
+              text: '#333333',
+              muted: '#6b7280'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            arabic: ['"Amiri"', 'serif'] // Will fallback to default serif if Amiri isn't installed, but maintains styling intent
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Embedded CSS for specific constraints (Chart Containers & Utilities) -->
+  <style>
+    /* * Chart Container Styling 
+         * Strictly controlling dimensions to prevent layout breaks and overflow 
+         */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      height: 250px;
+      max-height: 300px;
+    }
+
+    @media (min-width: 768px) {
+      .chart-container {
+        height: 300px;
+      }
+    }
+
+    /* Hide scrollbar for clean horizontal tag list */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Modal Overlay Transition */
+    .modal-overlay {
+      transition: opacity 0.3s ease-out;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    /* Typography adjustments for Arabic */
+    .arabic-text {
+      font-size: 2.5rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body class="bg-neutral-bg text-neutral-text font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- REQUIRED PLACEHOLDER COMMENTS -->
+  <!-- Chosen Palette: Spiritual Green & Gold. Backgrounds are soft neutrals (#fafafa, #f2f7f4), primary branding is a deep, calming green (#2d6a4f) to evoke peace and growth, with subtle gold accents (#d4af37) for significance/premium feel. -->
+
+  <!-- Application Structure Plan: Dashboard & Discovery interface. 
+         Chosen to solve "Dua Paralysis". It provides a top-down view (Analytics/Categories) to inform the user of the breadth of attributes, then transitions immediately into a task-oriented explorer. 
+         - Top: Navigation & Intro.
+         - Left/Top Panel: "The Divine Attributes" - A Chart.js Donut chart acting as an interactive summary of the categories (Mercy, Power, Guidance, Protection). 
+         - Main Content: Omni-search and Intent Tags (the core value prop) allowing rapid filtering of a grid of "Name Cards".
+         - Modal: Deep dive into the specific Name, its linguistic roots, and the actual Dua. This keeps the main UI clean while allowing deep focus on the prayer itself. -->
+
+  <!-- Visualization & Content Choices: 
+         - Goal: Inform & Organize. 
+         - Viz: Chart.js Donut Chart. 
+         - Justification: Users need to see how the 99 Names are distributed across thematic categories. A donut chart elegantly shows proportions without overwhelming text. 
+         - Interaction: Hovering shows counts. 
+         - Method: Vanilla JS + Chart.js.
+         - Goal: Filter & Find.
+         - Viz: Interactive Intent Tags (Chips).
+         - Justification: Replaces complex dropdowns with 1-click emotional triggers based on the PRD's core problem statement.
+         - Library: Tailwind + Vanilla JS DOM manipulation. -->
+
+  <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All graphics/icons use Unicode characters and CSS shapes. -->
+
+  <!-- Navigation -->
+  <nav class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <div class="flex items-center gap-2 text-brand font-bold text-xl">
+          <span class="text-2xl text-brand-accent">&#10024;</span> Al-Asma Dua Connect
+        </div>
+        <div>
+          <button id="btn-favorites"
+            class="text-brand hover:text-brand-dark px-3 py-2 rounded-md font-medium flex items-center gap-1 transition-colors">
+            <span id="fav-icon" class="text-xl">&#9825;</span> My Duas
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Application Container -->
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col lg:flex-row gap-8">
+
+    <!-- Left Sidebar / Analytics Section -->
+    <aside class="w-full lg:w-1/3 flex flex-col gap-6">
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-2">The Divine Attributes</h2>
+        <p class="text-sm text-neutral-muted mb-6">
+          Allah's names cover every aspect of existence. See how they map to our human needs across different
+          categories.
+        </p>
+
+        <!-- Chart Container (Strictly styled via CSS) -->
+        <div class="chart-container">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+
+      <div class="bg-brand-light rounded-xl p-6 border border-brand/20 text-brand-dark">
+        <h3 class="font-bold mb-2 flex items-center gap-2">
+          <span>&#128161;</span> How to use this guide
+        </h3>
+        <p class="text-sm mb-4">
+          Feel overwhelmed? Select an emotional state from the tags, or search for a specific need. We will connect you
+          to the perfect divine attribute and a guided prayer (Dua).
+        </p>
+      </div>
+    </aside>
+
+    <!-- Right Main Content / Explorer -->
+    <section class="w-full lg:w-2/3 flex flex-col gap-6">
+
+      <!-- Intro & Search -->
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Find Your Supplication</h1>
+
+        <div class="relative w-full">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 text-lg">
+            &#128269;
+          </span>
+          <input type="text" id="searchInput"
+            placeholder="Search by name, feeling, or need (e.g., 'Healing', 'Lost')..."
+            class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent shadow-sm text-lg">
+        </div>
+      </div>
+
+      <!-- Intent Tags (Filters) -->
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Quick Intent Filters</h3>
+        <div id="intentTagsContainer" class="flex overflow-x-auto no-scrollbar pb-2 gap-2">
+          <!-- Tags populated by JS -->
+        </div>
+      </div>
+
+      <!-- Results Grid -->
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-bold text-gray-800" id="resultsCount">Loading Names...</h3>
+        <button id="clearFiltersBtn" class="text-sm text-brand hidden hover:underline">Clear Filters &#10005;</button>
+      </div>
+
+      <div id="namesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Name Cards populated by JS -->
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 mt-12 py-8">
+    <div class="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
+      <p>Based on Dr. Omar Suleiman's "Duas Through Allah's Names". Sadaqah Jariyah project.</p>
+    </div>
+  </footer>
+
+  <!-- Detail Modal -->
+  <div id="duaModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+    <!-- Overlay -->
+    <div id="modalOverlay" class="absolute inset-0 modal-overlay cursor-pointer"></div>
+
+    <!-- Modal Content -->
+    <div
+      class="bg-white rounded-2xl shadow-2xl z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4 flex flex-col relative">
+
+      <!-- Modal Header -->
+      <div class="bg-brand text-white p-6 rounded-t-2xl flex justify-between items-start">
+        <div>
+          <p id="modalCategory" class="text-brand-accent text-sm font-bold uppercase tracking-wider mb-1"></p>
+          <h2 id="modalNameEn" class="text-3xl font-bold"></h2>
+          <p id="modalTranslation" class="text-brand-light text-lg mt-1"></p>
+        </div>
+        <button id="closeModalBtn" class="text-white hover:text-brand-accent text-3xl leading-none">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 md:p-8 flex-grow">
+        <!-- Arabic Typography -->
+        <div class="mb-8 font-arabic text-brand-dark">
+          <p id="modalNameAr" class="arabic-text"></p>
+        </div>
+
+        <!-- Explanation / Root -->
+        <div class="mb-8 bg-neutral-bg p-4 rounded-lg border border-gray-100">
+          <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
+            <span class="text-brand">&#128214;</span> Meaning & Context
+          </h4>
+          <p id="modalExplanation" class="text-gray-700 text-sm leading-relaxed"></p>
+        </div>
+
+        <!-- The Dua -->
+        <div>
+          <h4 class="font-bold text-brand-dark mb-3 text-xl border-b pb-2">Your Supplication</h4>
+          <p id="modalDuaText" class="text-gray-800 text-lg leading-relaxed italic border-l-4 border-brand-accent pl-4">
+          </p>
+        </div>
+      </div>
+
+      <!-- Modal Footer (Actions) -->
+      <div class="bg-gray-50 p-4 border-t border-gray-100 rounded-b-2xl flex justify-between items-center">
+        <button id="modalFavBtn"
+          class="flex items-center gap-2 text-gray-600 hover:text-brand transition-colors font-medium px-4 py-2 rounded-lg bg-white border border-gray-200 shadow-sm">
+          <span id="modalFavIcon" class="text-xl">&#9825;</span> <span id="modalFavText">Favorite</span>
+        </button>
+        <button id="modalCopyBtn"
+          class="flex items-center gap-2 bg-brand text-white hover:bg-brand-dark transition-colors font-medium px-5 py-2 rounded-lg shadow-sm">
+          <span>&#128203;</span> Copy Dua
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    // --- 1. Data Storage (Simulating JSON/Backend based on Source Report) ---
+    const namesData = [
+      {
+        id: 1,
+        name: "Ar-Rahman",
+        arabic: "الرَّحْمَنُ",
+        translation: "The Beneficent / The Most Merciful",
+        category: "Mercy",
+        intents: ["Forgiveness", "Love", "Hope", "Despair"],
+        explanation: "From the root ra-ha-mim (ر ح م), which means to have tenderness, gentleness, kindness, and to show favor. Allah is the One who blesses all His creation with prosperity. His mercy is vast, greater than a mother's love for her child. Begin every task calling upon Ar-Rahman.",
+        dua: "Ya Rahman, from Your throne You wrote mercy upon Yourself. Please encompass me in Your mercy. Let my heart always find its way back to You. When I call You by this name, I am calling every mercy, every promise, every door that leads home."
+      },
+      {
+        id: 4,
+        name: "Ya Hadi",
+        arabic: "الهَادِي",
+        translation: "The Guide",
+        category: "Guidance",
+        intents: ["Lost", "Confusion", "Direction", "Doubt"],
+        explanation: "The One who continuously guides His creation to what is beneficial for them. He is the source of all guidance. Without His guidance, we wander blindly.",
+        dua: "Ya Hadi, guide my heart when I am lost, and show me the clear path to Your pleasure. When the voices of the world confuse me, let Your light be the only one I follow."
+      },
+      {
+        id: 22,
+        name: "Ya Jabbar",
+        arabic: "الْجَبَّارُ",
+        translation: "The Restorer / The Mender",
+        category: "Power",
+        intents: ["Broken Heart", "Injustice", "Oppression", "Weakness"],
+        explanation: "Often mistranslated merely as 'The Compeller', Al-Jabbar comes from the root describing the setting of broken bones. He is the One who restores, mends the brokenhearted, and protects the weak from the oppressors.",
+        dua: "Ya Jabbar, mend my broken heart and restore my shattered spirit. You are the Restorer of all that is broken; compensate me for my losses and compel the oppressors to justice."
+      },
+      {
+        id: 6,
+        name: "Ya Nur",
+        arabic: "النُّورُ",
+        translation: "The Light",
+        category: "Guidance",
+        intents: ["Darkness", "Sorrow", "Clarity"],
+        explanation: "The Light of the heavens and the earth. He illuminates the hearts of the believers and makes the truth evident.",
+        dua: "Ya Nur, place light in my heart, light on my tongue, light in my hearing, and light in my sight. Illuminate my path when the shadows of doubt surround me."
+      },
+      {
+        id: 8,
+        name: "Ya Waliyy",
+        arabic: "الْوَلِيُّ",
+        translation: "The Protecting Friend",
+        category: "Protection",
+        intents: ["Lonely", "Fear", "Abandonment"],
+        explanation: "The Protective Friend, the Ally. The One who lovingly guides, protects, and supports His righteous servants.",
+        dua: "Ya Waliyy, be my protecting friend in this life and the next. When I feel abandoned by the world, remind me that having You is having everything."
+      },
+      {
+        id: 26,
+        name: "Ya Ghaffar",
+        arabic: "الْغَفَّارُ",
+        translation: "The All-Forgiving",
+        category: "Mercy",
+        intents: ["Sin", "Guilt", "Repentance", "Forgiveness"],
+        explanation: "The One who continuously and repeatedly forgives sins, no matter how numerous they are, concealing them from others.",
+        dua: "Ya Ghaffar, I have wronged myself repeatedly, and none forgives sins but You. Cover my faults, wipe away my transgressions, and let me meet You with a pure heart."
+      },
+      {
+        id: 16,
+        name: "Al-Malik",
+        arabic: "الْمَلِكُ",
+        translation: "The Sovereign King",
+        category: "Power",
+        intents: ["Anxious", "Lack of Control", "Authority"],
+        explanation: "The Absolute Ruler, the King of kings. He possesses everything and has absolute authority over His dominion.",
+        dua: "Ya Malik, remind my anxious heart that You alone are in control. Strip away my reliance on worldly powers and make my heart bow only to Your sovereignty."
+      },
+      {
+        id: 66,
+        name: "Ya Shafi",
+        arabic: "الشَّافِي",
+        translation: "The Healer",
+        category: "Mercy",
+        intents: ["Healing", "Sickness", "Distress"],
+        explanation: "The Ultimate Healer of physical ailments and diseases of the heart. No cure exists except by His permission.",
+        dua: "Ya Shafi, heal the sicknesses of my body and the diseases of my heart. Grant me a cure that leaves no trace of illness behind."
+      }
+    ];
+
+    // --- 2. State Management ---
+    let appState = {
+      searchQuery: '',
+      activeFilter: null,
+      favorites: [],
+      viewingFavorites: false,
+      currentModalItem: null
+    };
+
+    // --- 3. DOM Elements ---
+    const elements = {
+      searchInput: document.getElementById('searchInput'),
+      intentTagsContainer: document.getElementById('intentTagsContainer'),
+      namesGrid: document.getElementById('namesGrid'),
+      resultsCount: document.getElementById('resultsCount'),
+      clearFiltersBtn: document.getElementById('clearFiltersBtn'),
+      categoryChart: document.getElementById('categoryChart'),
+
+      // Favorites Nav
+      btnFavorites: document.getElementById('btnFavorites'), // typo in id below, fixing reference
+      favIconHeader: document.getElementById('fav-icon'),
+
+      // Modal
+      modal: document.getElementById('duaModal'),
+      modalOverlay: document.getElementById('modalOverlay'),
+      closeModalBtn: document.getElementById('closeModalBtn'),
+
+      // Modal Content
+      mCategory: document.getElementById('modalCategory'),
+      mNameEn: document.getElementById('modalNameEn'),
+      mTranslation: document.getElementById('modalTranslation'),
+      mNameAr: document.getElementById('modalNameAr'),
+      mExplanation: document.getElementById('modalExplanation'),
+      mDuaText: document.getElementById('modalDuaText'),
+      mFavBtn: document.getElementById('modalFavBtn'),
+      mFavIcon: document.getElementById('modalFavIcon'),
+      mFavText: document.getElementById('modalFavText'),
+      mCopyBtn: document.getElementById('modalCopyBtn')
+    };
+    // Fix reference
+    const btnFavorites = document.getElementById('btn-favorites');
+
+    // --- 4. Initialization ---
+    function init() {
+      // Load favorites from local storage
+      const savedFavs = localStorage.getItem('duaFavorites');
+      if (savedFavs) {
+        appState.favorites = JSON.parse(savedFavs);
+      }
+
+      extractAndRenderTags();
+      renderGrid();
+      initChart();
+      attachEventListeners();
+      updateFavoritesUI();
+    }
+
+    // --- 5. Core Interaction Handling ---
+    function attachEventListeners() {
+      // Search
+      elements.searchInput.addEventListener('input', (e) => {
+        appState.searchQuery = e.target.value.toLowerCase();
+        renderGrid();
+      });
+
+      // Clear Filters
+      elements.clearFiltersBtn.addEventListener('click', () => {
+        appState.searchQuery = '';
+        appState.activeFilter = null;
+        appState.viewingFavorites = false;
+        elements.searchInput.value = '';
+        renderGrid();
+        renderTags(); // reset tag styling
+      });
+
+      // View Favorites Toggle
+      btnFavorites.addEventListener('click', () => {
+        appState.viewingFavorites = !appState.viewingFavorites;
+        appState.activeFilter = null; // Clear other filters
+        renderGrid();
+        renderTags();
+        updateFavoritesUI();
+      });
+
+      // Modal Controls
+      elements.closeModalBtn.addEventListener('click', closeModal);
+      elements.modalOverlay.addEventListener('click', closeModal);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !elements.modal.classList.contains('hidden')) {
+          closeModal();
+        }
+      });
+
+      // Modal Actions
+      elements.mFavBtn.addEventListener('click', toggleFavoriteModal);
+      elements.mCopyBtn.addEventListener('click', copyDuaToClipboard);
+    }
+
+    // --- 6. Rendering Logic ---
+
+    // Extract unique intents for filters
+    function extractAndRenderTags() {
+      const allIntents = namesData.flatMap(item => item.intents);
+      const uniqueIntents = [...new Set(allIntents)].sort();
+
+      elements.intentTagsContainer.innerHTML = '';
+
+      uniqueIntents.forEach(intent => {
+        const btn = document.createElement('button');
+        btn.className = `whitespace-nowrap px-4 py-2 rounded-full border text-sm font-medium transition-colors ${appState.activeFilter === intent
+            ? 'bg-brand text-white border-brand shadow-sm'
+            : 'bg-white text-gray-600 border-gray-200 hover:border-brand hover:text-brand'
+          }`;
+        btn.textContent = intent;
+        btn.onclick = () => {
+          // Toggle filter
+          if (appState.activeFilter === intent) {
+            appState.activeFilter = null;
+          } else {
+            appState.activeFilter = intent;
+            appState.viewingFavorites = false; // Turn off fav view if filtering
+            updateFavoritesUI();
+          }
+          renderGrid();
+          extractAndRenderTags(); // Re-render to update active styling
+        };
+        elements.intentTagsContainer.appendChild(btn);
+      });
+    }
+    // Alias for re-rendering tags
+    const renderTags = extractAndRenderTags;
+
+    function renderGrid() {
+      let filtered = namesData;
+
+      // Apply Favorites View
+      if (appState.viewingFavorites) {
+        filtered = filtered.filter(item => appState.favorites.includes(item.id));
+        elements.resultsCount.textContent = `My Favorites (${filtered.length})`;
+      }
+      else {
+        // Apply Intent Filter
+        if (appState.activeFilter) {
+          filtered = filtered.filter(item => item.intents.includes(appState.activeFilter));
+        }
+
+        // Apply Search Filter
+        if (appState.searchQuery) {
+          filtered = filtered.filter(item =>
+            item.name.toLowerCase().includes(appState.searchQuery) ||
+            item.translation.toLowerCase().includes(appState.searchQuery) ||
+            item.explanation.toLowerCase().includes(appState.searchQuery) ||
+            item.intents.some(i => i.toLowerCase().includes(appState.searchQuery))
+          );
+        }
+
+        elements.resultsCount.textContent = `Found ${filtered.length} Names`;
+      }
+
+      // Show/Hide Clear button
+      if (appState.activeFilter || appState.searchQuery || appState.viewingFavorites) {
+        elements.clearFiltersBtn.classList.remove('hidden');
+      } else {
+        elements.clearFiltersBtn.classList.add('hidden');
+      }
+
+      // Render Cards
+      elements.namesGrid.innerHTML = '';
+
+      if (filtered.length === 0) {
+        elements.namesGrid.innerHTML = `
+                    <div class="col-span-1 md:col-span-2 text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
+                        <span class="text-4xl text-gray-300 block mb-2">&#128064;</span>
+                        <p class="text-gray-500 font-medium">No names found matching your criteria.</p>
+                        <button onclick="document.getElementById('clearFiltersBtn').click()" class="mt-2 text-brand hover:underline">Clear all filters</button>
+                    </div>
+                `;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const isFav = appState.favorites.includes(item.id);
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between group relative overflow-hidden";
+        card.onclick = () => openModal(item);
+
+        // Color coding based on category (subtle)
+        let catColor = "bg-gray-100 text-gray-600";
+        if (item.category === 'Mercy') catColor = "bg-green-100 text-green-800";
+        if (item.category === 'Power') catColor = "bg-red-100 text-red-800";
+        if (item.category === 'Guidance') catColor = "bg-blue-100 text-blue-800";
+        if (item.category === 'Protection') catColor = "bg-purple-100 text-purple-800";
+
+        card.innerHTML = `
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-brand-light to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-bl-3xl"></div>
+                    <div>
+                        <div class="flex justify-between items-start mb-3 relative z-10">
+                            <span class="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded ${catColor}">${item.category}</span>
+                            <span class="text-xl ${isFav ? 'text-red-500' : 'text-gray-300'} group-hover:scale-110 transition-transform">
+                                ${isFav ? '&#9829;' : '&#9825;'}
+                            </span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-1">${item.name}</h2>
+                        <p class="text-brand-dark mb-4">${item.translation}</p>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap gap-1">
+                            ${item.intents.slice(0, 3).map(intent => `<span class="text-xs bg-gray-50 border border-gray-200 text-gray-500 px-2 py-1 rounded">${intent}</span>`).join('')}
+                            ${item.intents.length > 3 ? `<span class="text-xs text-gray-400 px-1 py-1">+${item.intents.length - 3}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+        elements.namesGrid.appendChild(card);
+      });
+    }
+
+    // --- 7. Data Visualization (Chart.js) ---
+    function initChart() {
+      const ctx = elements.categoryChart.getContext('2d');
+
+      // Calculate distributions
+      const catCounts = {};
+      namesData.forEach(item => {
+        catCounts[item.category] = (catCounts[item.category] || 0) + 1;
+      });
+
+      const labels = Object.keys(catCounts);
+      const data = Object.values(catCounts);
+
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: [
+              '#2d6a4f', // Brand Green (Mercy)
+              '#1b4332', // Dark Green (Guidance)
+              '#d4af37', // Gold (Power)
+              '#8fb996'  // Light Green (Protection)
+            ],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false, // Critical for container constraint
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                font: { family: "'Inter', sans-serif", size: 12 },
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(255,255,255,0.95)',
+              titleColor: '#333',
+              bodyColor: '#666',
+              borderColor: '#e5e7eb',
+              borderWidth: 1,
+              padding: 10,
+              callbacks: {
+                label: function (context) {
+                  let label = context.label || '';
+                  if (label) label += ': ';
+                  label += context.raw + ' Names';
+                  return label;
+                }
+              }
+            }
+          },
+          cutout: '65%'
+        }
+      });
+    }
+
+    // --- 8. Modal & Interaction Functions ---
+    function openModal(item) {
+      appState.currentModalItem = item;
+
+      // Populate Data
+      elements.mCategory.textContent = item.category;
+      elements.mNameEn.textContent = item.name;
+      elements.mTranslation.textContent = item.translation;
+      elements.mNameAr.textContent = item.arabic;
+      elements.mExplanation.textContent = item.explanation;
+      elements.mDuaText.textContent = `"${item.dua}"`;
+
+      updateModalFavUI();
+
+      // Show Modal
+      elements.modal.classList.remove('hidden');
+      // Small delay for transition effect
+      setTimeout(() => {
+        elements.modalOverlay.style.opacity = '1';
+        elements.modal.querySelector('.bg-white').style.transform = 'scale(1)';
+      }, 10);
+
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      elements.modalOverlay.style.opacity = '0';
+      setTimeout(() => {
+        elements.modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        appState.currentModalItem = null;
+      }, 300);
+    }
+
+    function toggleFavoriteModal() {
+      if (!appState.currentModalItem) return;
+
+      const id = appState.currentModalItem.id;
+      const index = appState.favorites.indexOf(id);
+
+      if (index > -1) {
+        // Remove
+        appState.favorites.splice(index, 1);
+      } else {
+        // Add
+        appState.favorites.push(id);
+      }
+
+      // Save & Update
+      localStorage.setItem('duaFavorites', JSON.stringify(appState.favorites));
+      updateModalFavUI();
+      renderGrid(); // update background grid
+      updateFavoritesUI();
+    }
+
+    function updateModalFavUI() {
+      if (!appState.currentModalItem) return;
+      const isFav = appState.favorites.includes(appState.currentModalItem.id);
+
+      if (isFav) {
+        elements.mFavIcon.innerHTML = '&#9829;'; // Solid heart
+        elements.mFavIcon.classList.add('text-red-500');
+        elements.mFavText.textContent = 'Favorited';
+        elements.mFavBtn.classList.add('border-red-200', 'bg-red-50');
+      } else {
+        elements.mFavIcon.innerHTML = '&#9825;'; // Outline heart
+        elements.mFavIcon.classList.remove('text-red-500');
+        elements.mFavText.textContent = 'Favorite';
+        elements.mFavBtn.classList.remove('border-red-200', 'bg-red-50');
+      }
+    }
+
+    function updateFavoritesUI() {
+      if (appState.viewingFavorites) {
+        btnFavorites.classList.add('bg-brand', 'text-white');
+        btnFavorites.classList.remove('text-brand');
+        elements.favIconHeader.innerHTML = '&#9829;';
+      } else {
+        btnFavorites.classList.remove('bg-brand', 'text-white');
+        btnFavorites.classList.add('text-brand');
+        elements.favIconHeader.innerHTML = '&#9825;';
+      }
+    }
+
+    function copyDuaToClipboard() {
+      if (!appState.currentModalItem) return;
+      const textToCopy = `Dua for ${appState.currentModalItem.name} (${appState.currentModalItem.translation}):\n\n"${appState.currentModalItem.dua}"\n\n-- From Al-Asma Dua Connect`;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const originalText = elements.mCopyBtn.innerHTML;
+        elements.mCopyBtn.innerHTML = `<span>&#10003;</span> Copied!`;
+        elements.mCopyBtn.classList.replace('bg-brand', 'bg-green-600');
+
+        setTimeout(() => {
+          elements.mCopyBtn.innerHTML = originalText;
+          elements.mCopyBtn.classList.replace('bg-green-600', 'bg-brand');
+        }, 2000);
+      }).catch(err => {
+        // Fallback for older browsers or iframe restrictions
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          const originalText = elements.mCopyBtn.innerHTML;
+          elements.mCopyBtn.innerHTML = `<span>&#10003;</span> Copied!`;
+          elements.mCopyBtn.classList.replace('bg-brand', 'bg-green-600');
+          setTimeout(() => {
+            elements.mCopyBtn.innerHTML = originalText;
+            elements.mCopyBtn.classList.replace('bg-green-600', 'bg-brand');
+          }, 2000);
+        } catch (err) {
+          alert('Unable to copy text.');
+        }
+        document.body.removeChild(textArea);
+      });
+    }
+
+    // --- Run App ---
+    document.addEventListener('DOMContentLoaded', init);
+
+  </script>
+</body>
+
+</html>
