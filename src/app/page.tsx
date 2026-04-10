@@ -27,6 +27,7 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [howToModal, setHowToModal] = useState(false);
   const [quoteModal, setQuoteModal] = useState(false);
+  const [showShareOptions, setShowShareOptions] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("duaFavorites");
@@ -47,10 +48,29 @@ export default function Home() {
     localStorage.setItem("duaFavorites", JSON.stringify(newFavs));
   };
 
+  const getShareText = () => {
+    if (!selectedName) return "";
+    return `Dua for ${selectedName.name} (${selectedName.meaning}):\n\n"${selectedName.dua}"\n\n-- Made With Name & Need: https://nameandneed.netlify.app`;
+  };
+
+  const shareVia = (platform: string) => {
+    const text = encodeURIComponent(getShareText());
+    if (platform === 'whatsapp') {
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    } else if (platform === 'telegram') {
+      window.open(`https://t.me/share/url?url=https://nameandneed.netlify.app&text=${text}`, '_blank');
+    } else if (platform === 'messages') {
+      window.open(`sms:?&body=${text}`, '_self');
+    } else if (platform === 'copy') {
+      navigator.clipboard.writeText(getShareText());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  // Keep original function for any backward compatibility need, but modify to use getShareText
   const copyToClipboard = () => {
-    if (!selectedName) return;
-    const textToCopy = `Dua for ${selectedName.name} (${selectedName.meaning}):\n\n"${selectedName.dua}"\n\n-- From Duaa Connect`;
-    navigator.clipboard.writeText(textToCopy);
+    navigator.clipboard.writeText(getShareText());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -284,7 +304,7 @@ export default function Home() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={viewingFavorites ? "flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory hide-scrollbar" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"}>
             {filteredNames.length === 0 ? (
               <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
                 <span className="text-4xl text-gray-300 block mb-2">👀</span>
@@ -300,8 +320,8 @@ export default function Home() {
                 return (
                   <div 
                     key={item.id}
-                    onClick={() => setSelectedName(item)}
-                    className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between group relative overflow-hidden h-full"
+                    onClick={() => { setSelectedName(item); setShowShareOptions(false); }}
+                    className={`bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between group relative overflow-hidden ${viewingFavorites ? 'min-w-[280px] w-[280px] shrink-0 snap-start' : 'h-full'}`}
                   >
                     <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#f2f7f4] to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-bl-3xl z-0"></div>
                     <div className="relative z-10">
@@ -342,21 +362,23 @@ export default function Home() {
                 My Duaas
                 
               </h2>
-              <div className="flex flex-col gap-6">
-                {filteredNames.map(item => (
-                  <div key={`dua-${item.id}`} className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm relative">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900">{item.name}</h3>
-                        <p className="text-[#2d6a4f] font-medium">{item.meaning}</p>
+              <div className="bg-white rounded-xl p-6 md:p-8 border border-gray-100 shadow-sm relative">
+                <div className="flex flex-col gap-8">
+                  {filteredNames.map((item, index) => (
+                    <div key={`dua-${item.id}`} className={index !== filteredNames.length - 1 ? "border-b border-gray-100 pb-8" : ""}>
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900">{item.name}</h3>
+                          <p className="text-[#2d6a4f] font-medium">{item.meaning}</p>
+                        </div>
+                        <span className="font-arabic text-2xl text-[#1b4332]">{item.arabic}</span>
                       </div>
-                      <span className="font-arabic text-2xl text-[#1b4332]">{item.arabic}</span>
+                      <div className="bg-[#fafafa] p-4 rounded-lg border-l-4 border-[#d4af37]">
+                        <p className="text-gray-800 text-lg leading-relaxed italic">"{item.dua}"</p>
+                      </div>
                     </div>
-                    <div className="bg-[#fafafa] p-4 rounded-lg border-l-4 border-[#d4af37]">
-                      <p className="text-gray-800 text-lg leading-relaxed italic">"{item.dua}"</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -367,6 +389,11 @@ export default function Home() {
       <footer className="bg-white border-t border-gray-200 mt-auto py-8">
         <div className="max-w-5xl mx-auto px-4 text-center text-gray-500 text-sm">
           <p>Built with spiritual serenity in mind. May Allah accept our duas.</p>
+          <p className="mt-2">
+            <a href="https://nabilpervezconsulting.com/offer" target="_blank" rel="noopener noreferrer" className="hover:text-[#2d6a4f] transition-colors hover:underline font-medium">
+              Created by Nabil Pervez Consulting
+            </a>
+          </p>
         </div>
       </footer>
 
@@ -399,7 +426,7 @@ export default function Home() {
       {/* Modal */}
       {selectedName && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 overflow-hidden transition-opacity" onClick={() => setSelectedName(null)}></div>
+          <div className="absolute inset-0 bg-black/50 overflow-hidden transition-opacity" onClick={() => { setSelectedName(null); setShowShareOptions(false); }}></div>
           <div className="bg-white rounded-2xl shadow-2xl z-10 w-full max-w-2xl max-h-[90vh] flex flex-col relative animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="bg-[#2d6a4f] text-white p-6 rounded-t-2xl flex justify-between items-start shrink-0">
@@ -449,27 +476,52 @@ export default function Home() {
             </div>
 
             {/* Modal Footer */}
-            <div className="bg-gray-50 p-4 border-t border-gray-100 rounded-b-2xl flex flex-wrap justify-between items-center gap-4 shrink-0">
-              <button 
-                onClick={() => toggleFavorite(selectedName.id)}
-                className={`flex items-center justify-center flex-1 sm:flex-none gap-2 font-medium px-4 py-2 rounded-lg border shadow-sm transition-colors ${
-                  favorites.includes(selectedName.id) 
-                    ? 'bg-red-50 border-red-200 text-red-600' 
-                    : 'bg-white border-gray-200 text-gray-600 hover:text-[#2d6a4f]'
-                }`}
-              >
-                <Heart className={`w-5 h-5 ${favorites.includes(selectedName.id) ? 'fill-current' : ''}`} />
-                {favorites.includes(selectedName.id) ? 'Favorited' : 'Favorite'}
-              </button>
-              <button 
-                onClick={copyToClipboard}
-                className={`flex items-center justify-center flex-1 sm:flex-none gap-2 text-white font-medium px-5 py-2 rounded-lg shadow-sm transition-colors ${
-                  copied ? 'bg-green-600 border-transparent hover:bg-green-700' : 'bg-[#2d6a4f] hover:bg-[#1b4332]'
-                }`}
-              >
-                {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                {copied ? 'Copied!' : 'Copy Dua'}
-              </button>
+            <div className="bg-gray-50 p-4 border-t border-gray-100 rounded-b-2xl flex flex-col shrink-0 relative">
+              {!showShareOptions ? (
+                <div className="flex flex-wrap justify-between items-center gap-4 w-full">
+                  <button 
+                    onClick={() => toggleFavorite(selectedName.id)}
+                    className={`flex items-center justify-center flex-1 sm:flex-none gap-2 font-medium px-4 py-2 rounded-lg border shadow-sm transition-colors ${
+                      favorites.includes(selectedName.id) 
+                        ? 'bg-red-50 border-red-200 text-red-600' 
+                        : 'bg-white border-gray-200 text-gray-600 hover:text-[#2d6a4f]'
+                    }`}
+                  >
+                    <Heart className={`w-5 h-5 ${favorites.includes(selectedName.id) ? 'fill-current' : ''}`} />
+                    {favorites.includes(selectedName.id) ? 'Favorited' : 'Favorite'}
+                  </button>
+                  <button 
+                    onClick={() => setShowShareOptions(true)}
+                    className="flex items-center justify-center flex-1 sm:flex-none gap-2 text-white font-medium px-5 py-2 rounded-lg shadow-sm transition-colors bg-[#2d6a4f] hover:bg-[#1b4332]"
+                  >
+                    <Copy className="w-5 h-5" />
+                    Share Dua
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full animate-in fade-in duration-200">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="font-semibold text-gray-700">Share via:</span>
+                    <button onClick={() => setShowShareOptions(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <button onClick={() => shareVia('messages')} className="flex flex-col items-center justify-center p-3 rounded-xl bg-white border border-gray-200 hover:border-[#2d6a4f] hover:bg-gray-50 transition-colors">
+                      <span className="text-2xl mb-1">💬</span><span className="text-xs font-medium text-gray-600">SMS</span>
+                    </button>
+                    <button onClick={() => shareVia('whatsapp')} className="flex flex-col items-center justify-center p-3 rounded-xl bg-white border border-gray-200 hover:border-green-500 hover:bg-green-50 transition-colors">
+                      <span className="text-2xl mb-1">📗</span><span className="text-xs font-medium text-gray-600">WhatsApp</span>
+                    </button>
+                    <button onClick={() => shareVia('telegram')} className="flex flex-col items-center justify-center p-3 rounded-xl bg-white border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                      <span className="text-2xl mb-1">✈️</span><span className="text-xs font-medium text-gray-600">Telegram</span>
+                    </button>
+                    <button onClick={() => shareVia('copy')} className="flex flex-col items-center justify-center p-3 rounded-xl bg-white border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-colors">
+                      <span className="text-2xl mb-1">{copied ? '✅' : '📋'}</span><span className="text-xs font-medium text-gray-600">{copied ? 'Copied!' : 'Copy'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
