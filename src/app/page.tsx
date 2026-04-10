@@ -26,6 +26,7 @@ export default function Home() {
   const [selectedName, setSelectedName] = useState<AllahName | null>(null);
   const [copied, setCopied] = useState(false);
   const [howToModal, setHowToModal] = useState(false);
+  const [quoteModal, setQuoteModal] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("duaFavorites");
@@ -199,22 +200,18 @@ export default function Home() {
         {!viewingFavorites && (
           <div className="flex flex-col gap-6">
 
-            {/* Islamic Quote — above search */}
-            <div className="p-6 bg-[#f2f7f4] rounded-xl border border-[#2d6a4f]/20 text-center">
-              <p className="font-arabic text-2xl text-[#1b4332] mb-4 leading-relaxed tracking-wide">
-                قُلِ ٱدْعُوا۟ ٱللَّهَ أَوِ ٱدْعُوا۟ ٱلرَّحْمَـٰنَ ۖ أَيًّۭا مَّا تَدْعُوا۟ فَلَهُ ٱلْأَسْمَآءُ ٱلْحُسْنَىٰ ۚ وَلَا تَجْهَرْ بِصَلَاتِكَ وَلَا تُخَافِتْ بِهَا وَٱبْتَغِ بَيْنَ ذَٰلِكَ سَبِيلًۭا ١١٠
-              </p>
-              <p className="text-sm text-gray-700 italic mb-2">
-                Say, ˹O Prophet,˺ "Call upon Allah or call upon the Most Compassionate—whichever you call, He has the Most Beautiful Names." Do not recite your prayers too loudly or silently, but seek a way between.
-              </p>
-              <a href="https://quran.com/17/110" target="_blank" rel="noopener noreferrer" className="text-xs text-[#2d6a4f] hover:underline font-medium">
-                The Night Journey (17:110)
-              </a>
-            </div>
-
             {/* Search */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">Find Your Supplication</h1>
+              <div className="flex items-center gap-2 mb-4">
+                <h1 className="text-3xl font-bold text-gray-900">Find Your Duaa</h1>
+                <button 
+                  onClick={() => setQuoteModal(true)}
+                  className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold hover:bg-[#2d6a4f] hover:text-white transition-colors cursor-pointer"
+                  title="View Inspiration"
+                >
+                  ?
+                </button>
+              </div>
               <div className="relative w-full">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                   <Search className="w-5 h-5" />
@@ -372,6 +369,32 @@ export default function Home() {
           <p>Built with spiritual serenity in mind. May Allah accept our duas.</p>
         </div>
       </footer>
+
+      {/* Quote Modal */}
+      {quoteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 overflow-hidden transition-opacity" onClick={() => setQuoteModal(false)}></div>
+          <div className="bg-white rounded-2xl shadow-2xl z-10 w-full max-w-2xl flex flex-col relative animate-in zoom-in-95 duration-200 text-center">
+            <div className="p-6 md:p-8">
+              <button 
+                onClick={() => setQuoteModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <p className="font-arabic text-2xl md:text-3xl text-[#1b4332] mb-6 leading-relaxed tracking-wide mt-4">
+                قُلِ ٱدْعُوا۟ ٱللَّهَ أَوِ ٱدْعُوا۟ ٱلرَّحْمَـٰنَ ۖ أَيًّۭا مَّا تَدْعُوا۟ فَلَهُ ٱلْأَسْمَآءُ ٱلْحُسْنَىٰ ۚ وَلَا تَجْهَرْ بِصَلَاتِكَ وَلَا تُخَافِتْ بِهَا وَٱبْتَغِ بَيْنَ ذَٰلِكَ سَبِيلًۭا ١١٠
+              </p>
+              <p className="text-gray-700 italic mb-4 leading-relaxed">
+                Say, ˹O Prophet,˺ "Call upon Allah or call upon the Most Compassionate—whichever you call, He has the Most Beautiful Names." Do not recite your prayers too loudly or silently, but seek a way between.
+              </p>
+              <a href="https://quran.com/17/110" target="_blank" rel="noopener noreferrer" className="text-sm text-[#2d6a4f] hover:underline font-bold">
+                The Night Journey (17:110)
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {selectedName && (
